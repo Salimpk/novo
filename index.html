@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فندق النجوم - نظام الحجز</title>
+    <!-- إضافة مكتبة EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background-color: #1a365d;
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .hero {
+            background-color: white;
+            border-radius: 10px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .booking-form {
+            display: grid;
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        input, select, textarea {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #2b6cb0;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #1a4971;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .success-message, .error-message {
+            padding: 15px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .error-message {
+            background-color: #fed7d7;
+            color: #9b2c2c;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>فندق النجوم</h1>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="hero">
+            <h2 style="text-align: center; margin-bottom: 30px;">احجز إقامتك معنا</h2>
+            <form class="booking-form" id="bookingForm">
+                <div class="form-group">
+                    <label for="name">الاسم الكامل</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">البريد الإلكتروني</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="phone">رقم الهاتف</label>
+                    <input type="tel" id="phone" name="phone" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="roomType">نوع الغرفة</label>
+                    <select id="roomType" name="roomType" required>
+                        <option value="">اختر نوع الغرفة</option>
+                        <option value="single">غرفة مفردة</option>
+                        <option value="double">غرفة مزدوجة</option>
+                        <option value="suite">جناح</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="checkIn">تاريخ الوصول</label>
+                    <input type="date" id="checkIn" name="checkIn" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="checkOut">تاريخ المغادرة</label>
+                    <input type="date" id="checkOut" name="checkOut" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">ملاحظات إضافية</label>
+                    <textarea id="message" name="message" rows="4"></textarea>
+                </div>
+
+                <button type="submit">تأكيد الحجز</button>
+            </form>
+
+            <div id="loading" class="loading">
+                جاري إرسال طلب الحجز...
+            </div>
+
+            <div id="successMessage" class="success-message">
+                تم إرسال طلب الحجز بنجاح! سنتواصل معك قريباً.
+            </div>
+
+            <div id="errorMessage" class="error-message">
+                حدث خطأ في إرسال طلب الحجز. يرجى المحاولة مرة أخرى.
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // تهيئة EmailJS
+        (function() {
+            emailjs.init("3fOzPiWUS6HDSBW0p"); // ضع USER_ID الخاص بك هنا
+        })();
+
+        // معالجة نموذج الحجز
+        document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // إظهار رسالة التحميل
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+
+            // تجهيز البيانات للإرسال
+            const templateParams = {
+                to_name: "مدير الفندق", // اسم المستلم
+                from_name: document.getElementById('name').value,
+                from_email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                room_type: document.getElementById('roomType').value,
+                check_in: document.getElementById('checkIn').value,
+                check_out: document.getElementById('checkOut').value,
+                message: document.getElementById('message').value
+            };
+
+            // إرسال البريد
+            emailjs.send(
+                'service_way0243', // معرف الخدمة
+                'template_69wstde', // معرف القالب
+                templateParams
+            )
+            .then(function(response) {
+                console.log('SUCCESS!', response.status, response.text);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('bookingForm').reset();
+            })
+            .catch(function(error) {
+                console.log('FAILED...', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('errorMessage').style.display = 'block';
+            });
+        });
+    </script>
+</body>
+</html>
